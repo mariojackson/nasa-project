@@ -6,3 +6,5 @@ const planetsSchema = new mongoose.Schema({
     required: true
   }
 });
+
+export default mongoose.model('Planet', planetsSchema);

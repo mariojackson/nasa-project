@@ -32,3 +32,5 @@ const launchesSchema = new mongoose.Schema({
     default: true
   }
 });
+
+export default mongoose.model('Launch', launchesSchema);
