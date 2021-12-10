@@ -1,15 +1,15 @@
 import {
   abortLaunchById,
-  addNewLaunch,
+  scheduleNewLaunch,
   existsLaunchWithId,
   getAllLaunches,
 } from '../../models/launches.model.js';
 
-function httpGetAllLaunches(req, res) {
-  return res.status(200).json(Array.from(getAllLaunches()));
+async function httpGetAllLaunches(req, res) {
+  return res.status(200).json(await getAllLaunches());
 }
 
-function httpAddNewLaunch(req, res) {
+async function httpAddNewLaunch(req, res) {
   const launch = req.body;
 
   if (!validateRequiredProperties(launch)) {
@@ -25,7 +25,7 @@ function httpAddNewLaunch(req, res) {
     });
   }
 
-  addNewLaunch(launch);
+  await scheduleNewLaunch(launch);
 
   return res.status(201).json(launch);
 }

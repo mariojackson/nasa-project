@@ -1,40 +1,54 @@
-// import launches from './launches.mongo.js';
+import launches from './launches.mongo.js';
+import planets from './planets.mongo.js';
 
-const launches = new Map();
+const DEFAULT_FLIGHT_NUMBER = 100;
 
-let latestFlightNumber = 100;
-
-const launch = {
-  flightNumber: 100,
-  mission: 'Kepler Exploration X',
-  rocket: 'Explorer IS1',
-  launchDate: new Date('December 27, 2030'),
-  target: 'Kepler-442 b',
-  customers: ['ZTM', 'NASA'],
-  upcoming: true,
-  success: true,
-};
-
-launches.set(launch.flightNumber, launch);
-
-function getAllLaunches() {
-  return Array.from(launches.values());
+async function getAllLaunches() {
+  return launches.find({ }, {
+    '_id': 0,
+    '__v': 0
+  });
 }
 
-function addNewLaunch(launch) {
-  latestFlightNumber++;
-  launch.flightNumber = launch.flightNumber || latestFlightNumber;
+async function getLatestFlightNumber() {
+  const latestLaunch = await launches
+    .findOne()
+    .sort('-flightNumber');
 
-  launches.set(
-    launch.flightNumber,
-    Object.assign(launch, {
-      success: true,
-      upcoming: true,
-      customers: ['Zero to Mastery'],
-      flightNumber: launch.flightNumber,
-    })
-  );
-  console.log(launches);
+  if (!latestLaunch) {
+    return DEFAULT_FLIGHT_NUMBER;
+  }
+
+  return latestLaunch.flightNumber;
+}
+
+async function saveLaunch(launch) {
+  const planet = await planets.findOne({
+    keplerName: launch.target
+  });
+
+  if (!planet) {
+    throw new Error(`No matching planet with name ${launch.target} was found`);
+  }
+
+  await launches.updateOne({
+    flightNumber: launch.flightNumber
+  }, launch, {
+    upsert: true
+  });
+}
+
+async function scheduleNewLaunch(launch) {
+  const newFlightNumber = await getLatestFlightNumber() + 1;
+
+  const newLaunch = Object.assign(launch, {
+    success: true,
+    upcoming: true,
+    customers: ['Jackson Software', 'NASA'],
+    flightNumber: newFlightNumber
+  });
+
+  await saveLaunch(newLaunch);
 }
 
 function existsLaunchWithId(launchId) {
@@ -48,4 +62,4 @@ function abortLaunchById(launchId) {
   return aborted;
 }
 
-export { getAllLaunches, addNewLaunch, existsLaunchWithId, abortLaunchById };
+export { getAllLaunches, scheduleNewLaunch, existsLaunchWithId, abortLaunchById };
