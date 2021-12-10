@@ -43,7 +43,10 @@ function loadPlanetsData() {
  * Returns all planets.
  */
 async function getAllPlanets() {
-  return await planets.find({});
+  return planets.find({}, {
+    '__v' : 0,
+    '_id': 0
+  });
 }
 
 /**
